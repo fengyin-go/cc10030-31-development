@@ -292,8 +292,7 @@ SEED_ROWS: dict[str, list[dict[str, Any]]] = {
   '货主名称': '箱号登记样例3',
   '温度要求': '箱号登记样例3',
   '备注说明': '箱号登记样例3'}],
-    "weather_alert": [{'id': 1,
-  'status': '草稿',
+    "weather_alert": [{'id': 1,  'status': '草稿',
   'pending': True,
   'abnormal': False,
   '预警海域': '气象预警样例1',
@@ -723,5 +722,9 @@ SEED_ROWS: dict[str, list[dict[str, Any]]] = {
   '适用航线': '费率核算样例3',
   '生效日期': '2026-09-03',
   '失效日期': '2026-09-03',
-  '备注说明': '费率核算样例3'}]
+  '备注说明': '费率核算样例3'}],
+    # 空态补正回执与受影响航次处置：由气象预警签收/航线补报时生成，
+    # 这里先给空表，让运营概览和质量检查都能看到这两个业务对象。
+    "weather_receipt": [],
+    "alert_disposition": [],
 }

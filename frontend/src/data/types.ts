@@ -18,6 +18,12 @@ export type ModuleMeta = {
   actions: string[]
   actionTargets: Record<string, string>
   metrics: string[]
+  /** 指标 2/3 对应的状态；不填时按 statuses[1] / statuses[last] 统计。 */
+  metricStatuses?: [string, string]
+  /** 登记表单字段；留空沿用 fields（用于只读展示列较多的模块）。 */
+  createFields?: string[]
+  /** 需要额外录入参数的动作：动作名 → 参数字段。留空表示直接执行。 */
+  actionInputs?: Record<string, string[]>
 }
 
 export type PageResult = {

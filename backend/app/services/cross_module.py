@@ -195,6 +195,54 @@ def weather_affects_voyage(sea_area: str) -> list[dict[str, Any]]:
     return affected_voyages
 
 
+def weather_impact_assessment(sea_area: str) -> dict[str, list[dict[str, Any]]]:
+    """把预警海域的命中结果拆成「可确认受影响」「无法确认」「已完成」三组。
+
+    只有航线已确认、且经停港口确实覆盖预警海域的航次才算可确认受影响，
+    这类航次才具备领取正式处置的资格。航线缺失或尚未确认时，即使经停
+    数据里出现了海域字样也不能直接生成处置，只能作为待核实航次记录。
+    已完成航次不参与新的处置分配。
+    """
+    confirmed: list[dict[str, Any]] = []
+    unconfirmed: list[dict[str, Any]] = []
+    completed: list[dict[str, Any]] = []
+
+    if not sea_area:
+        return {"affected": confirmed, "unconfirmed": unconfirmed, "completed": completed}
+
+    for voyage_row in store.rows("voyage"):
+        route_id = voyage_row.get("航线编号", "")
+        route = require_entity("route", route_id)
+        if route is None:
+            # 航线档案缺失时无法判断是否经过预警海域，不纳入可处置范围。
+            continue
+
+        via_ports = str(route.get("经停港口", ""))
+        if voyage_row.get("status") == "已完成":
+            # 已完成航次只记录确实经过该海域的，避免把无关航次列进来。
+            if route.get("status") == "已确认" and sea_area in via_ports:
+                completed.append(voyage_row)
+            continue
+
+        if route.get("status") != "已确认":
+            # 只有经停信息为空或已经提到该海域时，才属于「无法确认」；
+            # 明确登记了其他海域的航线不打扰。
+            if not via_ports.strip() or sea_area in via_ports:
+                unconfirmed.append({
+                    "voyage": voyage_row,
+                    "reason": (
+                        f"航次 {voyage_row.get('id', '')} 的航线 {route_id} "
+                        f"状态为「{route.get('status', '')}」，无法确认是否经过预警海域 {sea_area}"
+                    ),
+                })
+            continue
+
+        if sea_area in via_ports:
+            confirmed.append(voyage_row)
+
+    return {"affected": confirmed, "unconfirmed": unconfirmed, "completed": completed}
+
+
 def port_call_arrived(port_call_id: str | int) -> tuple[bool, str]:
     """港口挂靠已到达才能发起通关申报。"""
     return entity_matches_status("port_call", port_call_id, ["已确认"])
@@ -316,7 +364,7 @@ CROSS_CHAINS = {
         "consumption_check": check_fuel_consumption_between_refuels,
     },
     "weather_to_voyage": {
-        "description": "气象预警→影响海域→自动标记未完成航次",
+        "description": "气象预警→影响海域→自动标记未完成航次；无法确认的航次不得领取处置",
         "affected_voyages": weather_affects_voyage,
     },
     "port_call_to_clearance": {

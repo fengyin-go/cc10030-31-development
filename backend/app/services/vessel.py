@@ -17,10 +17,15 @@ class VesselService(BaseModuleService):
     ACTION_RULES = {"确认档案": "已确认", "更新状态": "已确认", "封存船舶": "已封存"}
     NEGATIVE_ACTIONS = []
 
-    def run_action(self, entry_id: int, action: str) -> tuple[dict[str, Any] | None, str]:
+    def run_action(
+        self,
+        entry_id: int,
+        action: str,
+        context: dict[str, Any] | None = None,
+    ) -> tuple[dict[str, Any] | None, str]:
         # 封存船舶时级联检查所有进行中航次
         if action == "封存船舶":
             ok, msg = seal_vessel_cascade(entry_id)
             if not ok:
                 return None, f"封存失败：{msg}"
-        return super().run_action(entry_id, action)
+        return super().run_action(entry_id, action, context)

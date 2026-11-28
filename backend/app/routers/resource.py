@@ -87,12 +87,16 @@ def create_entry(module: str, payload: EntryPayload) -> ActionResult:
     service = require_service(module)
     entry, missing = service.create_entry(payload.values)
     if missing:
-        return ActionResult(ok=False, message=f"缺少必填字段：{'、'.join(missing)}")
+        message = missing if isinstance(missing, str) else f"缺少必填字段：{'、'.join(missing)}"
+        return ActionResult(ok=False, message=message)
     return ActionResult(ok=True, message=f"{service.ENTITY}已登记", entry=entry)
 
 
 @router.post("/{module}/{entry_id}/actions", response_model=ActionResult)
 def run_action(module: str, entry_id: int, payload: ActionPayload) -> ActionResult:
     service = require_service(module)
-    entry, message = service.run_action(entry_id, payload.action.strip())
+    context = dict(payload.values or {})
+    if payload.remark:
+        context.setdefault("note", payload.remark)
+    entry, message = service.run_action(entry_id, payload.action.strip(), context)
     return ActionResult(ok=entry is not None, message=message, entry=entry)

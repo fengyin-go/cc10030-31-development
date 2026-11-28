@@ -36,7 +36,12 @@ class ManifestService(BaseModuleService):
 
         return entry, []
 
-    def run_action(self, entry_id: int, action: str) -> tuple[dict[str, Any] | None, str]:
+    def run_action(
+        self,
+        entry_id: int,
+        action: str,
+        context: dict[str, Any] | None = None,
+    ) -> tuple[dict[str, Any] | None, str]:
         # 幂等校验：重复签认同一舱单不重复更新
         if action == "签发舱单":
             entry = self.get_entry(entry_id)
@@ -55,4 +60,4 @@ class ManifestService(BaseModuleService):
                     has_loaded, loaded_cargo = all_cargo_loaded_for_voyage(voyage_id)
                     if not has_loaded:
                         return None, f"签发失败：航次 {voyage_id} 没有已装载货物"
-        return super().run_action(entry_id, action)
+        return super().run_action(entry_id, action, context)

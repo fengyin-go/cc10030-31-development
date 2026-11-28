@@ -17,7 +17,12 @@ class CharterService(BaseModuleService):
     ACTION_RULES = {"签认合约": "已签认", "调整条款": "待签认", "终止合约": "已终止"}
     NEGATIVE_ACTIONS = []
 
-    def run_action(self, entry_id: int, action: str) -> tuple[dict[str, Any] | None, str]:
+    def run_action(
+        self,
+        entry_id: int,
+        action: str,
+        context: dict[str, Any] | None = None,
+    ) -> tuple[dict[str, Any] | None, str]:
         # 终止合约时级联检查：该船舶是否有进行中航次
         if action == "终止合约":
             entry = store.find(self.MODULE, entry_id)
@@ -27,4 +32,4 @@ class CharterService(BaseModuleService):
                     if str(voyage_row.get("船舶编号", "")) == vessel_name:
                         if voyage_row.get("status") not in ("已完成",):
                             return None, f"终止合约失败：船舶 {vessel_name} 存在未完成航次 {voyage_row.get('id', '')}"
-        return super().run_action(entry_id, action)
+        return super().run_action(entry_id, action, context)

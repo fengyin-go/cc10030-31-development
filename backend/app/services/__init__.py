@@ -11,6 +11,8 @@ from app.services.fuel_log import FuelLogService
 from app.services.port_call import PortCallService
 from app.services.container import ContainerService
 from app.services.weather_alert import WeatherAlertService
+from app.services.weather_receipt import WeatherReceiptService
+from app.services.alert_disposition import AlertDispositionService
 from app.services.accident_log import AccidentLogService
 from app.services.inspection import InspectionService
 from app.services.clearance import ClearanceService
@@ -33,6 +35,8 @@ SERVICES: dict[str, BaseModuleService] = {
     "port_call": PortCallService(),
     "container": ContainerService(),
     "weather_alert": WeatherAlertService(),
+    "weather_receipt": WeatherReceiptService(),
+    "alert_disposition": AlertDispositionService(),
     "accident_log": AccidentLogService(),
     "inspection": InspectionService(),
     "clearance": ClearanceService(),
